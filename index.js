@@ -21,7 +21,7 @@ const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
-  res.send('API is running');
+  res.send('API is running, Deployment endpoints : Register : /api/auth/register , Login : /api/auth/login , Forgot Password : /api/auth/forgot-password , Example Data Form : Register : {"username": "user1", "email": "Provide-Your-Email", "password": "password123"} , Login: { "username":"user1", "password":"password123" }, Forgot Password {"email": "Provide-Your-Registered-Email"} ');
 });
 
 app.listen(PORT, () => {
