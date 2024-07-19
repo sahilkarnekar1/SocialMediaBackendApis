@@ -14,6 +14,8 @@
 
 
 
+## Note : Deployed Endpoints can not work for create update or delete post because the project is hosted on vercel.com and vercel have read-only file system thats why i am not able to write files on backend but this functionality can be achive using AWS cloud storage or any other read and write file system.
+you can test the endpoints locally only 
 
 # Deployment endpoints
 
