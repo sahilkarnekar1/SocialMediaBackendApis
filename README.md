@@ -3,6 +3,8 @@
 - Register : http://localhost:5000/api/auth/register
 - Login : http://localhost:5000/api/auth/login
 - Forgot Password : http://localhost:5000/api/auth/forgot-password
+- Reset Password : http://localhost:5000/api/auth/reset-password?token=24ac2818ffd9cb57c81731df7c08f633 // this link will be provided on email after sending request on forgot-password api endpoint
+you beed to provide {"newPassword" : "new password"} in json format for reset the password
 - Create Post : http://localhost:5000/api/posts
 - Get All Posts Of The User : http://localhost:5000/api/posts
 - Update Post : http://localhost:5000/api/posts/Paste_Post_Id_Here_From_Database
@@ -14,14 +16,14 @@
 
 
 
-## Note : Deployed Endpoints can not work for create update or delete post because the project is hosted on vercel.com and vercel have read-only file system thats why i am not able to write files on backend but this functionality can be achive using AWS cloud storage or any other read and write file system.
-you can test the endpoints locally only 
+## Note : Deployed Endpoints now available for testing. For the cloudinarrya cloud you need to configure the cloudinary, otherwise the data or images will be uploaded on my cloudinary storage
 
 # Deployment endpoints
 
 - Register : https://banao-node-js-backend-apis.vercel.app/api/auth/register
 - Login : https://banao-node-js-backend-apis.vercel.app/api/auth/login
 - Forgot Password : https://banao-node-js-backend-apis.vercel.app/api/auth/forgot-password
+- - Reset Password : https://banao-node-js-backend-apis.vercel.app/api/auth/reset-password?token=24ac2818ffd9cb57c81731df7c08f633 // this link will be provided on email after sending request on forgot-password api endpoint
 - Create Post : https://banao-node-js-backend-apis.vercel.app/api/posts
 - Get All Posts Of The User : https://banao-node-js-backend-apis.vercel.app/api/posts
 - Update Post : https://banao-node-js-backend-apis.vercel.app/api/posts/Paste_Post_Id_Here_From_Database
@@ -38,7 +40,8 @@ you can test the endpoints locally only
 Body -> raw -> JSON data -> 
 {
     "username": "user1",
-    "email": "Provide-Your-Email",      "password": "password123"
+    "email": "Provide-Your-Email",     
+    "password": "password123"
 }
 
 ## Login : Method : POST
@@ -54,26 +57,35 @@ Body -> raw -> JSON data ->
     "email": "Provide-Your-Registered-Email"
 }
 
+## Reset Password : Method : POST
+Body -> raw -> JSON data -> 
+{
+    "newPassword": "Provide-Your-new Password"
+}
+
 ## Create Post : Method : POST
 Headers : 
-1. Content-Type = application/json
-2. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. x-auth-token = jwt token generated at the login time
+2. Key is x-auth-token = Value is Assuming, user is logged in and tokenn getting from frontend. for testing paste  token of the user who logged in and paste token getting in response at login time.
+For Example : x-auth-token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmExNzJmOTU4OTQ1ZjE1Mzc5NzYxMjQiLCJpYXQiOjE3MjE4NTY3OTMsImV4cCI6MTcyMTg2MDM5M30.mDxGajBVsGP8OnyQBiTEpvXTksAMTlda7gMp3giqPV4
+
+the token will expire after 1 hour
 
 Body -> form-data -> in key value pair -> 
 1. heading = heading of post
 2. description = description of post
 3. image = image should be file type select file from local machine
+All data will be upload in encrypted form
 
 ## Get All Posts Of The User : Method : GET
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = jwt token.
+For Example : x-auth-token = token
 
 ## Update Post : Method : PUT
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = jwt token
+For Example : x-auth-token = token
 
 Body -> form-data -> in key value pair -> 
 1. heading = update heading of post
@@ -82,28 +94,28 @@ Body -> form-data -> in key value pair ->
 
 ## Delete Post : Method : DELETE
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = token
+For Example : x-auth-token = token
 
 ## Follow User : Method : POST
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = token
+For Example : x-auth-token = token
 
 ## Get All Following Users Posts : Method : GET
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = token
+For Example : userId = token
 
 ## Like a Post : Method : POST
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = token.
+For Example : x-auth-token = token
 
 ## Comment on post : Method : POST
 Headers :
-1. Key is userId = Value is Assuming user is logged in and id getting from frontend. for testing paste user id of the user who logged in and paste user id from database.
-For Example : userId = 66966c1a10f05218b59d78de
+1. Key is x-auth-token = token
+For Example : x-auth-token = token
 
 Body -> raw -> JSON data -> 
 {
