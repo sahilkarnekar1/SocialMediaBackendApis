@@ -1,27 +1,46 @@
+// routes/posts.js
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const Post = require('../models/Post');
 const User = require('../models/User');
 const upload = require('../middleware/multer');
+const cloudinary = require('../config/cloudinary');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = async (req, res, next) => {
-  const userId = req.header('userId');
-  if (!userId) return res.status(401).json({ msg: 'No user ID, authorization denied' });
+  const token = req.header('x-auth-token');
+  if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
 
-  const user = await User.findById(userId);
-  if (!user) return res.status(401).json({ msg: 'Invalid user ID' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(401).json({ msg: 'Invalid token' });
 
-  req.user = user;
-  next();
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: 'Token is not valid' });
+  }
 };
 
-// Helper function to delete image
-const deleteImage = (imagePath) => {
-  fs.unlink(imagePath, (err) => {
-    if (err) console.error('Failed to delete image:', err);
+// Helper function to upload image to Cloudinary
+const uploadToCloudinary = (file) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream({ resource_type: 'image', folder: 'post_images' }, (error, result) => {
+      if (error) reject(error);
+      resolve(result);
+    }).end(file.buffer);
+  });
+};
+
+// Helper function to delete image from Cloudinary
+const deleteFromCloudinary = (publicId) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) reject(error);
+      resolve(result);
+    });
   });
 };
 
@@ -30,28 +49,24 @@ router.post('/', isAuthenticated, upload.single('image'), async (req, res) => {
   const { heading, description } = req.body;
 
   try {
-    const imageUrl = req.file ? `uploads/${req.file.filename}` : null;
+    let imageUrl = null;
+    let imageId = null;
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file);
+      imageUrl = result.secure_url;
+      imageId = result.public_id;
+    }
 
     const newPost = new Post({
       heading,
       description,
       imageUrl,
+      imageId,
       user: req.user._id
     });
 
     const post = await newPost.save();
     res.status(201).json(post);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// Get all posts of the authenticated user
-router.get('/', isAuthenticated, async (req, res) => {
-  try {
-    const posts = await Post.find({ user: req.user._id });
-    res.json(posts);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -70,17 +85,21 @@ router.put('/:id', isAuthenticated, upload.single('image'), async (req, res) => 
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    const imageUrl = req.file ? `uploads/${req.file.filename}` : post.imageUrl;
-
-    // Delete old image if a new one is uploaded
-    if (req.file && post.imageUrl) {
-      const oldImagePath = path.join(__dirname, '..', post.imageUrl);
-      deleteImage(oldImagePath);
+    let imageUrl = post.imageUrl;
+    let imageId = post.imageId;
+    if (req.file) {
+      if (post.imageId) {
+        await deleteFromCloudinary(post.imageId);
+      }
+      const result = await uploadToCloudinary(req.file);
+      imageUrl = result.secure_url;
+      imageId = result.public_id;
     }
 
     post.heading = heading;
     post.description = description;
     post.imageUrl = imageUrl;
+    post.imageId = imageId;
     await post.save();
 
     res.json(post);
@@ -100,10 +119,9 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    // Delete the image from the uploads folder
-    if (post.imageUrl) {
-      const imagePath = path.join(__dirname, '..', post.imageUrl);
-      deleteImage(imagePath);
+    // Delete the image from Cloudinary
+    if (post.imageId) {
+      await deleteFromCloudinary(post.imageId);
     }
 
     await post.deleteOne();
@@ -169,7 +187,7 @@ router.post('/:id/like', isAuthenticated, async (req, res) => {
 
 // Add a comment to a post
 router.post('/:id/comment', isAuthenticated, async (req, res) => {
-  const { text } = req.body;
+  const { comment } = req.body;
 
   try {
     const post = await Post.findById(req.params.id);
@@ -180,14 +198,14 @@ router.post('/:id/comment', isAuthenticated, async (req, res) => {
     }
 
     const newComment = {
-      text,
-      user: req.user._id
+      user: req.user._id,
+      text: comment
     };
 
-    post.comments.unshift(newComment);
+    post.comments.push(newComment);
     await post.save();
 
-    res.json(post.comments);
+    res.json(post);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
