@@ -74,7 +74,7 @@ router.post('/forgot-password', async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `http://localhost:5000/api/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `https://banao-node-js-backend-apis.vercel.app/api/auth/reset-password?token=${resetToken}`;
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
