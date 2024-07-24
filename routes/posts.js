@@ -1,4 +1,3 @@
-// routes/posts.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
@@ -6,6 +5,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const upload = require('../middleware/multer');
 const cloudinary = require('../config/cloudinary');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = async (req, res, next) => {
@@ -49,24 +49,44 @@ router.post('/', isAuthenticated, upload.single('image'), async (req, res) => {
   const { heading, description } = req.body;
 
   try {
-    let imageUrl = null;
+    let encryptedImageUrl = null;
     let imageId = null;
     if (req.file) {
       const result = await uploadToCloudinary(req.file);
-      imageUrl = result.secure_url;
+      encryptedImageUrl = encrypt(result.secure_url);
       imageId = result.public_id;
     }
 
+    const encryptedHeading = encrypt(heading);
+    const encryptedDescription = encrypt(description);
+
     const newPost = new Post({
-      heading,
-      description,
-      imageUrl,
+      heading: encryptedHeading,
+      description: encryptedDescription,
+      imageUrl: encryptedImageUrl,
       imageId,
       user: req.user._id
     });
 
     const post = await newPost.save();
     res.status(201).json(post);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Get all posts of the authenticated user
+router.get('/', isAuthenticated, async (req, res) => {
+  try {
+    const posts = await Post.find({ user: req.user._id });
+    const decryptedPosts = posts.map(post => ({
+      ...post.toObject(),
+      heading: decrypt(post.heading),
+      description: decrypt(post.description),
+      imageUrl: post.imageUrl ? decrypt(post.imageUrl) : null,
+    }));
+    res.json(decryptedPosts);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -85,20 +105,23 @@ router.put('/:id', isAuthenticated, upload.single('image'), async (req, res) => 
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    let imageUrl = post.imageUrl;
+    let encryptedImageUrl = post.imageUrl;
     let imageId = post.imageId;
     if (req.file) {
       if (post.imageId) {
         await deleteFromCloudinary(post.imageId);
       }
       const result = await uploadToCloudinary(req.file);
-      imageUrl = result.secure_url;
+      encryptedImageUrl = encrypt(result.secure_url);
       imageId = result.public_id;
     }
 
-    post.heading = heading;
-    post.description = description;
-    post.imageUrl = imageUrl;
+    const encryptedHeading = encrypt(heading);
+    const encryptedDescription = encrypt(description);
+
+    post.heading = encryptedHeading;
+    post.description = encryptedDescription;
+    post.imageUrl = encryptedImageUrl;
     post.imageId = imageId;
     await post.save();
 
@@ -156,7 +179,13 @@ router.post('/follow/:userId', isAuthenticated, async (req, res) => {
 router.get('/followed', isAuthenticated, async (req, res) => {
   try {
     const posts = await Post.find({ user: { $in: req.user.following } }).populate('user', 'username');
-    res.json(posts);
+    const decryptedPosts = posts.map(post => ({
+      ...post.toObject(),
+      heading: decrypt(post.heading),
+      description: decrypt(post.description),
+      imageUrl: post.imageUrl ? decrypt(post.imageUrl) : null,
+    }));
+    res.json(decryptedPosts);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -187,7 +216,7 @@ router.post('/:id/like', isAuthenticated, async (req, res) => {
 
 // Add a comment to a post
 router.post('/:id/comment', isAuthenticated, async (req, res) => {
-  const { comment } = req.body;
+  const { text } = req.body;
 
   try {
     const post = await Post.findById(req.params.id);
@@ -199,7 +228,7 @@ router.post('/:id/comment', isAuthenticated, async (req, res) => {
 
     const newComment = {
       user: req.user._id,
-      text: comment
+      text: text
     };
 
     post.comments.push(newComment);
