@@ -4,19 +4,7 @@
 - Login : http://localhost:5000/api/auth/login
 - Forgot Password : http://localhost:5000/api/auth/forgot-password
 - Reset Password : http://localhost:5000/api/auth/reset-password?token=24ac2818ffd9cb57c81731df7c08f633 // this link will be provided on email after sending request on forgot-password api endpoint
-you beed to provide {"newPassword" : "new password"} in json format for reset the password
-- Create Post : http://localhost:5000/api/posts
-- Get All Posts Of The User : http://localhost:5000/api/posts
-- Update Post : http://localhost:5000/api/posts/Paste_Post_Id_Here_From_Database
-- Delete Post : http://localhost:5000/api/posts/Paste_Post_Id_Here_From_Database
-- Follow User : http://localhost:5000/api/posts/follow/Paste_User_Id_Here_From_Database
-- Get All Following Users Posts : http://localhost:5000/api/posts/followed
-- Like a Post : http://localhost:5000/api/posts/Paste_Post_Id_Here_From_Database/like
-- Comment on post : http://localhost:5000/api/posts/Paste_Post_Id_Here_From_Database/comment
-
-
-
-## Note : Deployed Endpoints now available for testing. For the cloudinarrya cloud you need to configure the cloudinary, otherwise the data or images will be uploaded on my cloudinary storage
+you need to provide {"newPassword" : "new password"} in json format for reset the password
 
 # Deployment endpoints
 
@@ -24,14 +12,7 @@ you beed to provide {"newPassword" : "new password"} in json format for reset th
 - Login : https://banao-node-js-backend-apis.vercel.app/api/auth/login
 - Forgot Password : https://banao-node-js-backend-apis.vercel.app/api/auth/forgot-password
 - - Reset Password : https://banao-node-js-backend-apis.vercel.app/api/auth/reset-password?token=24ac2818ffd9cb57c81731df7c08f633 // this link will be provided on email after sending request on forgot-password api endpoint
-- Create Post : https://banao-node-js-backend-apis.vercel.app/api/posts
-- Get All Posts Of The User : https://banao-node-js-backend-apis.vercel.app/api/posts
-- Update Post : https://banao-node-js-backend-apis.vercel.app/api/posts/Paste_Post_Id_Here_From_Database
-- Delete Post : https://banao-node-js-backend-apis.vercel.app/api/posts/Paste_Post_Id_Here_From_Database
-- Follow User : https://banao-node-js-backend-apis.vercel.app/api/posts/follow/Paste_User_Id_Here_From_Database
-- Get All Following Users Posts : https://banao-node-js-backend-apis.vercel.app/api/posts/followed
-- Like a Post : https://banao-node-js-backend-apis.vercel.app/api/posts/Paste_Post_Id_Here_From_Database/like
-- Comment on post : https://banao-node-js-backend-apis.vercel.app/api/posts/Paste_Post_Id_Here_From_Database/comment
+
 
 
 ## Example Json Data to Pass the api
@@ -62,73 +43,6 @@ Body -> raw -> JSON data ->
 {
     "newPassword": "Provide-Your-new Password"
 }
-
-## Create Post : Method : POST
-Headers : 
-1. x-auth-token = jwt token generated at the login time
-2. Key is x-auth-token = Value is Assuming, user is logged in and tokenn getting from frontend. for testing paste  token of the user who logged in and paste token getting in response at login time.
-For Example : x-auth-token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmExNzJmOTU4OTQ1ZjE1Mzc5NzYxMjQiLCJpYXQiOjE3MjE4NTY3OTMsImV4cCI6MTcyMTg2MDM5M30.mDxGajBVsGP8OnyQBiTEpvXTksAMTlda7gMp3giqPV4
-
-the token will expire after 1 hour
-
-Body -> form-data -> in key value pair -> 
-1. heading = heading of post
-2. description = description of post
-3. image = image should be file type select file from local machine
-All data will be upload in encrypted form
-
-## Get All Posts Of The User : Method : GET
-Headers :
-1. Key is x-auth-token = jwt token.
-For Example : x-auth-token = token
-
-## Update Post : Method : PUT
-Headers :
-1. Key is x-auth-token = jwt token
-For Example : x-auth-token = token
-
-Body -> form-data -> in key value pair -> 
-1. heading = update heading of post
-2. description = update description of post
-3. image = update image should be file type select file from local machine
-
-## Delete Post : Method : DELETE
-Headers :
-1. Key is x-auth-token = token
-For Example : x-auth-token = token
-
-## Follow User : Method : POST
-Headers :
-1. Key is x-auth-token = token
-For Example : x-auth-token = token
-
-## Get All Following Users Posts : Method : GET
-Headers :
-1. Key is x-auth-token = token
-For Example : userId = token
-
-## Like a Post : Method : POST
-Headers :
-1. Key is x-auth-token = token.
-For Example : x-auth-token = token
-
-## Comment on post : Method : POST
-Headers :
-1. Key is x-auth-token = token
-For Example : x-auth-token = token
-
-Body -> raw -> JSON data -> 
-{
-  "text": "Very Nice !"
-}
-
-
-
-
-
-
-
-
 ## Support
 
 For support, email sahilkarnekar.sit.it@gmail.com
